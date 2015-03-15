@@ -1,0 +1,6 @@
+Rot Hidden Service Manager
+
+Usage:
+    rot help                            Show this message
+    rot setup [-p PORT, --port=PORT]    Install Tor, with SOCKS proxy listening at port 9050 by default
+    
