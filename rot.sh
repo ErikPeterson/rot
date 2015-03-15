@@ -1,6 +1,6 @@
 # Rot Hidden Service Manager
 #
-# Most of this script is ripped from NVM. 
+# Much of this script is ripped from NVM. 
 # Credit to Tim Caswell <tim@creationix.com>
 #
 # Author: Erik Sälgström Peterson
@@ -30,6 +30,16 @@ rot_get_os(){
   echo "$ROT_OS"
 }
 
+rot_get_latest(){
+    if [ -n $(command -v curl >/dev/null 2>&1) ]; then
+        echo $(\curl --silent https://gitweb.torproject.org/tor.git/plain/ReleaseNotes 2>&1 | grep -o -E -m 1 "(\d+\.){3}\d+")
+    elif [ -n $(command -v wget > /dev/null 2>&1) ]; then
+        echo "Wget installed"
+    else
+        echo "curl or wget are required to download and install Tor"
+        exit 1
+    fi
+}
 rot () {
 	if [ $# -lt 1 ]; then
 		rot help
@@ -64,14 +74,38 @@ rot () {
                      ROT_TORRC_PATH=$( echo "$ARG" | grep -oE "=.*" | grep -oE "[^=].*")
                      ROT_TORRC_PATH=$( echo "$(cd $(dirname $ROT_TORRC_PATH) &> /dev/null; pwd)/$(basename "$ROT_TORRC_PATH")") 
                      ;;
+                 -s|--install-from-source )
+                     local ROT_USER_INSTALL
+                     ROT_USER_INSTALL=true
+                     ;;
                esac
                let COUNTER=COUNTER+1
             done
+            unset COUNTER
 
             case "$ROT_OS" in
                "darwin" | "linux" | "sunos" | "freebsd" )
-                    echo "$ROT_PORT $ROT_TORRC_PATH" 
-               ;;
+                    if [ -n $(command -v tor) ];then
+                       export ROT_TOR=$(command -v tor)
+                    elif [ -n ROT_USER_INSTALL ];then
+                       rot_install_tor "$ROT_PORT" "$ROT_TORRC_PATH"
+                    else
+                       echo -c "No Tor installation detected. Do you want to download and compile the latest version of Tor from source? [yN]"
+                       read install
+                       case "$install" in
+                           y|Y ) rot_install_tor "$ROT_PORT" "$ROT_TORRC_PATH";;
+                           *)
+                              echo "Rot needs a Tor installation to function."
+                              exit 1
+                              ;;
+                       esac
+                    fi
+
+                    ;;
+               * )
+                   echo "OS Not supported"
+                   exit 1
+                   ;;
             esac
         ;;
     esac
