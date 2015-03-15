@@ -1,6 +1,12 @@
 Rot Hidden Service Manager
 
 Usage:
-    rot help                            Show this message
-    rot setup [-p PORT, --port=PORT]    Install Tor, with SOCKS proxy listening at port 9050 by default
+    rot <commmand> [options] 
     
+Commands:
+    help                            Show this message
+    setup                           Initialize Rot and configure basic settings 
+         Options:
+          [-p PORT, --port=PORT]    Set the listen port for Tor SOCKS proxy 
+          [-f FILE, --file=FILE]    Set the torrc file for Rot
+          [-s, --source]            Silently install latest stable Tor from source
